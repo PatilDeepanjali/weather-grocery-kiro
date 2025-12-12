@@ -1,0 +1,24 @@
+# Kiro workflow: fetch weather + trends, merge, upload
+name: weather-grocery-pipeline
+on:
+schedule:
+- cron: '0 * * * *' # hourly
+steps:
+- id: fetch_weather
+uses: fetcher:run
+with:
+script: scripts/fetch_weather.py
+- id: fetch_trends
+uses: fetcher:run
+with:
+script: scripts/fetch_trends.py
+- id: merge
+uses: processor:run
+with:
+script: scripts/merge_and_clean.py
+- id: publish_dashboard
+uses: publisher:run
+with:
+target: dashboard/data.json
+
+
