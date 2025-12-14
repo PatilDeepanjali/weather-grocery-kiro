@@ -7,7 +7,8 @@ API_KEY = os.getenv('0e2ac22287e368c89076e512f541f17f')
 CITY = "Mumbai"
 
 # Build the API URL correctly
-url = f'https://api.openweathermap.org/data/2.5/forecast?q={CITY}&units=metric&appid={API_KEY}'
+url = f'https://api.openweathermap.org/data/2.5/forecast?q={CITY}&units=metric&appid={"0e2ac22287e368c89076e512f541f17f"}'
+
 
 # Fetch weather data
 resp = requests.get(url)

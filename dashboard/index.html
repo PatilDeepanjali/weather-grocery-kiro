@@ -1,16 +1,39 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Weather vs Grocery Demand</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Weather vs Grocery Demand Dashboard</title>
+
+<script defer src="chart.js"></script>
+<script defer src="app.js"></script>
+
 <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
+
 <h1>Weather vs Grocery Demand</h1>
-<canvas id="tempChart" width="800" height="300"></canvas>
-<canvas id="trendChart" width="800" height="300"></canvas>
+
+<!-- INSIGHTS CARD -->
+<div class="card insight-box">
+    <h2>Key Insights</h2>
+    <div id="insightText"></div>
+</div>
+
+<!-- WEATHER CHART CARD -->
+<div class="card chart-card">
+    <h3>Temperature & Rain Probability</h3>
+    <canvas id="tempChart"></canvas>
+</div>
+
+<!-- TRENDS CHART CARD -->
+<div class="card chart-card">
+    <h3>Grocery Demand Trend (Noodles)</h3>
+    <canvas id="trendChart"></canvas>
+</div>
+
+<!-- Load app.js ONLY ONCE, AT THE END -->
 <script src="app.js"></script>
 </body>
 </html>

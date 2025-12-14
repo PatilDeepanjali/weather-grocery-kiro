@@ -1,42 +1,80 @@
-# merge_and_clean.py
 import json
 from datetime import datetime
+import numpy as np
 
-
+# Load weather
 with open('dashboard/weather.json') as f:
-w = json.load(f)
-with open('dashboard/trends.json') as f:
-t = json.load(f)
+    weather_raw = json.load(f)
 
-
-# Simplify weather: extract date, temp, pop (probability of precipitation)
 weather_points = []
-for item in w.get('list',[]):
-dt = item['dt_txt']
-temp = item['main']['temp']
-pop = item.get('pop',0)
-weather_points.append({'dt':dt,'temp':temp,'pop':pop})
+for item in weather_raw.get('list', []):
+    weather_points.append({
+        "dt": item["dt_txt"][:10],  # date only (YYYY-MM-DD)
+        "temp": item["main"]["temp"],
+        "pop": item.get("pop", 0)
+    })
+
+# Load trends (from CSV-made JSON)
+with open('dashboard/trends.json') as f:
+    trends_raw = json.load(f)
+
+# Build daily aligned lists
+dates = [t["date"] for t in trends_raw]
+
+temps = []
+pops = []
+noodles = []
+cold_drink = []
+soup = []
+
+# Map weather to same dates as trends
+weather_by_date = {}
+for w in weather_points:
+    d = w["dt"]
+    if d not in weather_by_date:
+        weather_by_date[d] = {"temps": [], "pops": []}
+    weather_by_date[d]["temps"].append(w["temp"])
+    weather_by_date[d]["pops"].append(w["pop"])
+
+def avg(values):
+    values = [v for v in values if v is not None]
+    return sum(values)/len(values) if values else None
 
 
-# trends already has timestamp keys; convert to daily averages for keywords
-# Example transform depending on pytrends structure
-from collections import defaultdict
-agg = defaultdict(lambda: defaultdict(list))
-for row in t:
-    date = row.get('date') or row.get('index')
-for k in ['noodles','soup','cold drink','ice cream','tea']:
-if k in row:
-agg[date][k].append(row[k])
+for t in trends_raw:
+    d = t["date"]
+    metrics = t["metrics"]
+    noodles.append(metrics["noodles"])
+    cold_drink.append(metrics["cold_drink"])
+    soup.append(metrics["soup"])
 
+    # weather for this day
+    wd = weather_by_date.get(d, {"temps": [None], "pops": [None]})
+    temps.append(avg(wd["temps"]))
+    pops.append(avg(wd["pops"]))
 
-trends_points = []
-for date,vals in agg.items():
-avg = {k: sum(v)/len(v) if v else 0 for k,v in vals.items()}
-trends_points.append({'date':str(date),'metrics':avg})
+# Convert Nones → drop during correlation
+def correlation(a, b):
+    paired = [(x, y) for x, y in zip(a, b) if x is not None and y is not None]
+    if len(paired) < 3:
+        return None
+    x, y = zip(*paired)
+    return float(np.corrcoef(x, y)[0, 1])
 
+correlations = {
+    "temp_noodles": correlation(temps, noodles),
+    "temp_cold_drink": correlation(temps, cold_drink),
+    "rain_soup": correlation(pops, soup)
+}
 
-# Output merged json for dashboard
-out = {'weather':weather_points,'trends':trends_points,'generated_at':str(datetime.utcnow())}
-with open('dashboard/data.json','w') as f:
-json.dump(out,f)
-print('merged data saved')
+output = {
+    "weather": weather_points,
+    "trends": trends_raw,
+    "correlations": correlations,
+    "generated_at": str(datetime.utcnow())
+}
+
+with open("dashboard/data.json", "w") as f:
+    json.dump(output, f, indent=2)
+
+print("merged data saved with correlations")

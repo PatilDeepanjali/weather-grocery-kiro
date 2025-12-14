@@ -1,24 +1,29 @@
-# Kiro workflow: fetch weather + trends, merge, upload
-name: weather-grocery-pipeline
+
+
+name: weather-grocery-weaver
+
 on:
-schedule:
-- cron: '0 * * * *' # hourly
+  schedule:
+    - cron: "0 * * * *"   # every hour
+
 steps:
-- id: fetch_weather
-uses: fetcher:run
-with:
-script: scripts/fetch_weather.py
-- id: fetch_trends
-uses: fetcher:run
-with:
-script: scripts/fetch_trends.py
-- id: merge
-uses: processor:run
-with:
-script: scripts/merge_and_clean.py
-- id: publish_dashboard
-uses: publisher:run
-with:
-target: dashboard/data.json
+  - id: fetch_weather
+    uses: python:run
+    with:
+      script: scripts/fetch_weather.py
 
+  - id: load_trends
+    uses: python:run
+    with:
+      script: scripts/fetch_trends.py
 
+  - id: merge
+    uses: python:run
+    with:
+      script: scripts/merge_and_clean.py
+
+  - id: publish_dashboard
+    uses: storage:upload
+    with:
+      source: dashboard/data.json
+      target: public/data.json
