@@ -88,14 +88,17 @@ These insights are calculated programmatically and updated automatically.
 
 /.kiro
 workflow.yaml
-README.md (link)
+README.md
+
 /scripts
 fetch_weather.py
 fetch_trends.py
 merge_and_clean.py
+
 /dashboard
 index.html
 app.js
 styles.css
+
 /docs
 blog_draft.md
